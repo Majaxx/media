@@ -156,7 +156,7 @@ public function indexArtist()
     $this->loadModel('Config');
     $this->loadModel('Folders');
 
-    // on récupère les variables issues des autres controleurs
+    // on rÃ©cupÃ¨re les variables issues des autres controleurs
     $url = $this->Config->findByNom('url_music')->first()['valeur'];
     $path = $this->Folders->findByType('Musique')->first()['path'];
 
@@ -204,7 +204,7 @@ public function indexArtist()
     $this->loadModel('Config');
     $this->loadModel('Folders');
 
-    // on récupère les variables issues des autres controleurs
+    // on rÃ©cupÃ¨re les variables issues des autres controleurs
     $url = $this->Config->findByNom('url_music')->first()['valeur'];
     $path = $this->Folders->findByType('Musique')->first()['path'];
 
@@ -317,7 +317,7 @@ public function indexArtist()
       $this->loadModel('Folders');
 
 
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Folders->findByType('Musique')->first();
 
       $filetype = $settings['filetype'];
@@ -366,7 +366,7 @@ public function indexArtist()
     }
 
       if (count($musiques_path)==0){
-        $this->Flash->success(__("Aucune musique à indexer !"));
+        $this->Flash->success(__("Aucune musique Ã  indexer !"));
       }else{
         $this->Flash->success(__("Fin du scan !"));
       }
@@ -397,7 +397,7 @@ public function upload()
   //Pas d'upload pour l'instant !
 
   $this->loadModel('Folders');
-  // on récupère les variables issues des autres controleurs
+  // on rÃ©cupÃ¨re les variables issues des autres controleurs
   $path = $this->Folders->findByType('Musique_upload')->first()['path'];
   $this->set('upload_dir', $path);
 
@@ -407,7 +407,7 @@ public function rename(){
 
     $this->loadModel('Folders');
 
-    // on récupère les variables issues des autres controleurs
+    // on rÃ©cupÃ¨re les variables issues des autres controleurs
     $settings = $this->Folders->findByType('Musique')->first();
 
     $filetype = $settings['filetype'];
@@ -466,10 +466,11 @@ public function rename(){
         array_push($musics_artist, $artist);
         array_push($musics_num, $num);
         array_push($musics_move, $move);
-        // On créé le fichier avant > permet de créer les dossiers 20XX
+        // On crÃ©Ã© le fichier avant > permet de crÃ©er les dossiers 20XX
         $file_move = new File ($move, true, 0777);
-        // on move ! avec rename !
-        if(rename($music_path, $move)){
+		unlink($move);
+        // on move ! avec symlink !
+        if(symlink($music_path, $move)){
           array_push($musics_ok, 'OK');
           //chmod($move, 0777);
         }else {
@@ -480,7 +481,7 @@ public function rename(){
 
     }
     if (count($musics_path)==0){
-      $this->Flash->success(__("Aucun film à renomer !"));
+      $this->Flash->success(__("Aucun film Ã  renomer !"));
     }else{
       $this->Flash->success(__("Fin du scan !"));
     }
