@@ -5,7 +5,8 @@ use App\Controller\AppController;
 use Cake\Event\Event;
 
 use Cake\Filesystem\Folder;
-use Cake\Filesystem\File;
+use Cake\Filesystem\File;$file_move = new File ($move, true, 0777);
+
 
 
 
@@ -79,21 +80,21 @@ class SeriesController extends AppController
       $file = str_replace('-slash-', '/', $file);
 
       $this->loadModel('Folders');
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Folders->findByType('Series')->first();
       $path = $settings['path'];
 
-      if(null != $this->request->query('rename')){
-        $new_file = $this->request->query('rename');
+      if(null != $this->request->query('symlink')){
+        $new_file = $this->request->query('symlink');
         $file = $path.'/'.$file;
         $new_file = $path.'/'.$new_file;
 
-        // On créé le fichier avant > permet de créer les dossiers 20XX
+        // On crÃ©Ã© le fichier avant > permet de crÃ©er les dossiers 20XX
         new File ($new_file, true, 0777);
-        // on move ! avec rename !
-        if(rename($file, $new_file)){
+        // on move ! avec symlink !
+        if(symlink($file, $new_file)){
           chmod($new_file, 0777);
-          $this->Flash->success(__('Le fichier a été renommé.'));
+          $this->Flash->success(__('Le fichier a Ã©tÃ© renommÃ©.'));
           return $this->redirect(['action' => 'import']);
 
         }
@@ -124,7 +125,7 @@ class SeriesController extends AppController
         $user_path = $this->Folders->findByType('Serie_user')->first()['path'];
         $this->set('user_path', count(scandir($user_path))-2);
 
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Folders->findByType('Serie_upload')->first();
 
       if ($settings) {
@@ -148,13 +149,14 @@ class SeriesController extends AppController
 
             if($ext != false){
                 $file_move = new File ($move, true, 0777);
-                // on move ! avec rename !
-                rename($tmp_path, $move);
+				unlink($move);
+                // on move ! avec symlink !
+                symlink($tmp_path, $move);
                 chmod($move, 0777);
                 array_push($files_array, $file);
 
               } else {
-                $this->Flash->warning(__('Ceci n\'est pas une série!'));
+                $this->Flash->warning(__('Ceci n\'est pas une sÃ©rie!'));
 
               }
 
@@ -174,14 +176,14 @@ class SeriesController extends AppController
     {
 
       $this->loadModel('Folders');
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Folders->findByType('Serie_user')->first();
 
       if ($settings) {
           $path = $settings['path'];
       } else {
           $path = false;
-            $this->Flash->warning(__('Veuillez configurer un dossier d\'upload pour les séries.'));
+            $this->Flash->warning(__('Veuillez configurer un dossier d\'upload pour les sÃ©ries.'));
       }
 
       if ($this->request->is('post')) {
@@ -198,13 +200,14 @@ class SeriesController extends AppController
 
               if($ext != false){
                   $file_move = new File ($move, true, 0777);
-                  // on move ! avec rename !
-                  rename($tmp_path, $move);
+				  unlink($move);
+                  // on move ! avec symlink !
+                  symlink($tmp_path, $move);
                   chmod($move, 0777);
                   array_push($files_array, $file);
 
                 } else {
-                  $this->Flash->warning(__('Ceci n\'est pas une série!'));
+                  $this->Flash->warning(__('Ceci n\'est pas une sÃ©rie!'));
 
                 }
 
@@ -229,14 +232,14 @@ class SeriesController extends AppController
         if ($this->request->is('post')) {
           $serie->alert = 1;
           $this->Series->save($serie);
-          $this->Flash->warning(__('La série à été signalée !'));
+          $this->Flash->warning(__('La sÃ©rie Ã  Ã©tÃ© signalÃ©e !'));
           $this->set('refer', 'javascript:history.go(-2)');
         }else {
         $this->set('refer', $this->referer());
         }
 
         if ($serie->alert == 1) {
-          $this->Flash->warning(__('Les informations concernant cette série ont étés signalées comme fausses !'));
+          $this->Flash->warning(__('Les informations concernant cette sÃ©rie ont Ã©tÃ©s signalÃ©es comme fausses !'));
         }
 
         $episodes = $this->Series->findByIdTmdb($serie->id_tmdb)->order(['season','episode']);
@@ -339,7 +342,7 @@ class SeriesController extends AppController
         $this->loadModel('Folders');
         $this->loadModel('Rmwords');
 
-        // on récupère les variables issues des autres controleurs
+        // on rÃ©cupÃ¨re les variables issues des autres controleurs
         $settings = $this->Folders->findByType('Series')->first();
         $rm_start = explode(',', $this->Rmwords->findByEnd('0')->first()['words']);
         $rm_end = explode(',', $this->Rmwords->findByEnd('1')->first()['words']);
@@ -349,7 +352,7 @@ class SeriesController extends AppController
             $path = $settings['path'];
         } else {
             $path = false;
-            $this->Session->setFlash(__('Veuillez configurer un dossier pour les séries.'), 'flash_error');
+            $this->Session->setFlash(__('Veuillez configurer un dossier pour les sÃ©ries.'), 'flash_error');
             $this->redirect(array('controller' => 'settings', 'action' => 'index'));
         }
 
@@ -396,10 +399,11 @@ class SeriesController extends AppController
             array_push($series_move, $move);
 
 
-            // On créé le fichier avant > permet de créer les dossiers 20XX
+            // On crÃ©Ã© le fichier avant > permet de crÃ©er les dossiers 20XX
             $file_move = new File ($move, true, 0777);
-            // on move ! avec rename !
-            if(rename($serie_path, $move)){
+			unlink($move);
+            // on move ! avec symlink !
+            if(symlink($serie_path, $move)){
               array_push($series_ok, 'OK');
               //chmod($move, 0777);
             }else {
@@ -410,7 +414,7 @@ class SeriesController extends AppController
 
         }
         if (count($series_path)==0){
-          $this->Flash->success(__("Aucune série à renomer !"));
+          $this->Flash->success(__("Aucune sÃ©rie Ã  renomer !"));
         }else{
           $this->Flash->success(__("Fin du scan !"));
         }
@@ -432,7 +436,7 @@ class SeriesController extends AppController
       $this->loadModel('Folders');
       $this->loadModel('Rmwords');
 
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Folders->findByType('Series')->first();
       $rm_start = explode(',', $this->Rmwords->findByEnd('0')->first()['words']);
       $rm_end = explode(',', $this->Rmwords->findByEnd('1')->first()['words']);
@@ -442,7 +446,7 @@ class SeriesController extends AppController
           $path = $settings['path'];
       } else {
           $path = false;
-          $this->Session->setFlash(__('Veuillez configurer un dossier pour les séries.'), 'flash_error');
+          $this->Session->setFlash(__('Veuillez configurer un dossier pour les sÃ©ries.'), 'flash_error');
           $this->redirect(array('controller' => 'settings', 'action' => 'index'));
       }
 
@@ -477,18 +481,18 @@ class SeriesController extends AppController
           array_push($series_season, $season);
           array_push($series_episode, $episode);
 
-          // Réécriture pour ne pas grabber toutes les infos à chaque épisode
-          // On utilise le résultat précédent, comme les épisode sont scannés à la suite, cela limite les accès à l'api externe
-          // Pour cela on compare le nom des séries
+          // RÃ©Ã©criture pour ne pas grabber toutes les infos Ã  chaque Ã©pisode
+          // On utilise le rÃ©sultat prÃ©cÃ©dent, comme les Ã©pisode sont scannÃ©s Ã  la suite, cela limite les accÃ¨s Ã  l'api externe
+          // Pour cela on compare le nom des sÃ©ries
           $this->loadModel('Config');
           $apikey = $this->Config->findByNom('tmdb_api_key')->first()['valeur'];
 
           if ($name == $name_old) {
 
-            // On récup' les data
+            // On rÃ©cup' les data
             $serie_info = getEpisodeInfo($info_old, $season, $episode, $serie_path, $path, $apikey);
           } else {
-            // Sinon procédure classique, on grab toutes les data !
+            // Sinon procÃ©dure classique, on grab toutes les data !
             $serie_info = getSerie($name, $season, $episode, $serie_path, $path, $apikey);
           }
 
@@ -510,7 +514,7 @@ class SeriesController extends AppController
 
       }
       if (count($serie_path)==0){
-        $this->Flash->success(__("Aucun film à indexer !"));
+        $this->Flash->success(__("Aucun film Ã  indexer !"));
       }else{
         $this->Flash->success(__("Fin du scan !"));
       }
@@ -530,7 +534,7 @@ class SeriesController extends AppController
     {
       $this->loadModel('Config');
 
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Config->findByNom('url_serie')->first();
 
       if ($settings) {
@@ -563,7 +567,7 @@ class SeriesController extends AppController
     {
       $this->loadModel('Config');
 
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Config->findByNom('url_serie')->first();
 
       if ($settings) {
@@ -610,7 +614,7 @@ class SeriesController extends AppController
 
 
       $this->loadModel('Folders');
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Folders->findByType('Series')->first();
 
       if ($settings) {
@@ -726,7 +730,7 @@ class SeriesController extends AppController
         $apikey = $this->Config->findByNom('tmdb_api_key')->first()['valeur'];
         $tmdb = new TMDB($apikey, 'fr');
 
-        // on récupère les variables issues des autres controleurs
+        // on rÃ©cupÃ¨re les variables issues des autres controleurs
         $settings = $this->Folders->findByType('Serie_user')->first();
         $rm_start = explode(',', $this->Rmwords->findByEnd('0')->first()['words']);
         $rm_end = explode(',', $this->Rmwords->findByEnd('1')->first()['words']);
@@ -739,13 +743,13 @@ class SeriesController extends AppController
 
         if ($act == 'remove') {
             unlink($path.'/'.$file);
-            $this->Flash->warning(__("Série rejetée !"));
+            $this->Flash->warning(__("SÃ©rie rejetÃ©e !"));
 
         }
 
         if ($act == 'accept') {
-            rename($path.'/'.$file, $path2.'/'.$file);
-            $this->Flash->success(__("Série déplacée vers Serie_Upload !"));
+            symlink($path.'/'.$file, $path2.'/'.$file);
+            $this->Flash->success(__("SÃ©rie dÃ©placÃ©e vers Serie_Upload !"));
 
         }
 
@@ -778,7 +782,7 @@ class SeriesController extends AppController
           $episode = substr(findEpisode($serie),1);
 
 
-          // On cherche si l'episode existe déjà
+          // On cherche si l'episode existe dÃ©jÃ 
 
           $id_tmdb_search = $tmdb->searchTVShow($name)[0]->getID();
           $id_tmdb = $this->Series->findByIdTmdbAndEpisodeAndSeason($id_tmdb_search,$episode,$season)->first();
@@ -802,7 +806,7 @@ class SeriesController extends AppController
           }
 
         if (count($series_file)==0){
-          $this->Flash->success(__("Aucune série à renomer !"));
+          $this->Flash->success(__("Aucune sÃ©rie Ã  renomer !"));
         }else{
           $this->Flash->success(__("Fin du scan !"));
         }
@@ -825,7 +829,7 @@ class SeriesController extends AppController
     {
       $this->loadModel('Config');
 
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Config->findByNom('url_serie_mod')->first();
 
       if ($settings) {
