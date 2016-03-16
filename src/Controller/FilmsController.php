@@ -38,24 +38,24 @@ class FilmsController extends AppController
 
 }
 
-// Pas utilisé ! trop moche !!
+// Pas utilisÃ© ! trop moche !!
 public function indexSplash()
 {
   $this->loadModel('Series');
   $this->loadModel('Music');
 
 $films = $this->Films->find('all',array(
-    //chaîne de caractère ou tableau définissant order
+    //chaÃ®ne de caractÃ¨re ou tableau dÃ©finissant order
     'order' => array('Films.created DESC'),
     'limit' => 5));
 
     $series = $this->Series->find('all',array(
-        //chaîne de caractère ou tableau définissant order
+        //chaÃ®ne de renameFile()caractÃ¨re ou tableau dÃ©finissant order
         'order' => array('Series.created DESC'),
         'limit' => 5));
 
         $albums = $this->Music->find('all',array(
-            //chaîne de caractère ou tableau définissant order
+            //chaÃ®ne de caractÃ¨re ou tableau dÃ©finissant order
             'group' => array('Music.album'),
             'order' => array('Music.created DESC'),
             'limit' => 5));
@@ -84,7 +84,7 @@ $films = $this->Films->find('all',array(
 
 
       $this->loadModel('Folders');
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Folders->findByType('Film_upload')->first();
 
       if ($settings) {
@@ -108,8 +108,9 @@ $films = $this->Films->find('all',array(
 
             if($ext != false){
                 $file_move = new File ($move, true, 0777);
-                // on move ! avec rename !
-                rename($tmp_path, $move);
+                   unlink($move);
+                // on move ! avec symlink !
+                symlink($tmp_path, $move);
                 chmod($move, 0777);
                 array_push($files_array, $file);
 
@@ -136,10 +137,10 @@ $films = $this->Films->find('all',array(
       $this->loadModel('Rmwords');
 
 
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $rm_start = explode(',', $this->Rmwords->findByEnd('0')->first()['words']);
       $rm_end = explode(',', $this->Rmwords->findByEnd('1')->first()['words']);
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Folders->findByType('Film_user')->first();
       $filetype = $settings['filetype'];
 
@@ -159,7 +160,7 @@ $films = $this->Films->find('all',array(
 
             $year = findYear($file['name']);
             $ext = findExt($file['name'], $filetype);
-            // Traitement avec les mots clés
+            // Traitement avec les mots clÃ©s
             $name = rm_words($file['name'], $rm_end, $rm_start);
 
             $move = movePathModerate($path, $name, $year, $ext);
@@ -170,8 +171,9 @@ $films = $this->Films->find('all',array(
 
             if($ext != false){
                 $file_move = new File ($move, true, 0777);
-                // on move ! avec rename !
-                rename($tmp_path, $move);
+                 unlink($move);
+                // on move ! avec symlink !
+                symlink($tmp_path, $move);
                 chmod($move, 0777);
                 array_push($files_array, $file);
               } else {
@@ -188,7 +190,7 @@ $films = $this->Films->find('all',array(
       $this->set('_serialize', ['upload']);
     }
 
-// Pages visibles uniquement par les users (non identifiés)
+// Pages visibles uniquement par les users (non identifiÃ©s)
     public function indexUser($view='grid', $genre='')
     {
       if ($view == 'grid') {
@@ -235,21 +237,21 @@ $films = $this->Films->find('all',array(
         $file = str_replace('-slash-', '/', $file);
 
         $this->loadModel('Folders');
-        // on récupère les variables issues des autres controleurs
+        // on rÃ©cupÃ¨re les variables issues des autres controleurs
         $settings = $this->Folders->findByType('Films')->first();
         $path = $settings['path'];
 
-        if(null != $this->request->query('rename')){
-          $new_file = $this->request->query('rename');
+        if(null != $this->request->query('symlink')){
+          $new_file = $this->request->query('symlink');
           $file = $path.'/'.$file;
           $new_file = $path.'/'.$new_file;
 
-          // On créé le fichier avant > permet de créer les dossiers 20XX
+          // On crÃ©Ã© le fichier avant > permet de crÃ©er les dossiers 20XX
           new File ($new_file, true, 0777);
-          // on move ! avec rename !
-          if(rename($file, $new_file)){
+          // on move ! avec symlink !
+          if(symlink($file, $new_file)){
             chmod($new_file, 0777);
-            $this->Flash->success(__('Le fichier a été renommé.'));
+            $this->Flash->success(__('Le fichier a Ã©tÃ© renommÃ©.'));
             return $this->redirect(['action' => 'import']);
 
           }
@@ -257,7 +259,7 @@ $films = $this->Films->find('all',array(
           $this->set('file', $file);
       }
 
-// Affichage de la vue d'un film sélectionné
+// Affichage de la vue d'un film sÃ©lectionnÃ©
     public function viewUser($id = null)
     {
         $film = $this->Films->get($id, [
@@ -266,14 +268,14 @@ $films = $this->Films->find('all',array(
         if ($this->request->is('post')) {
           $film->alert = 1;
           $this->Films->save($film);
-          $this->Flash->warning(__('Le film à été signalé !'));
+          $this->Flash->warning(__('Le film Ã  Ã©tÃ© signalÃ© !'));
           $this->set('refer', 'javascript:history.go(-2)');
         }else {
         $this->set('refer', $this->referer());
         }
 
         if ($film->alert == 1) {
-          $this->Flash->warning(__('Les informations concernant ce film ont étés signalées comme fausses !'));
+          $this->Flash->warning(__('Les informations concernant ce film ont Ã©tÃ©s signalÃ©es comme fausses !'));
         }
         $this->loadModel('Folders');
         $settings = $this->Folders->findByType('Films')->first();
@@ -297,7 +299,7 @@ $films = $this->Films->find('all',array(
     {
       $this->loadModel('Config');
 
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Config->findByNom('url_film')->first();
 
       if ($settings) {
@@ -317,12 +319,12 @@ $films = $this->Films->find('all',array(
 
     }
 
-// Génération du fichier m3u contenant le lien de stream
+// GÃ©nÃ©ration du fichier m3u contenant le lien de stream
     public function stream($id = null)
     {
       $this->loadModel('Config');
 
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Config->findByNom('url_film')->first();
 
       if ($settings) {
@@ -351,12 +353,12 @@ $films = $this->Films->find('all',array(
 
     }
 
-// Permet de générer le stream pour faciliter la modération des fichiers uploadés.
+// Permet de gÃ©nÃ©rer le stream pour faciliter la modÃ©ration des fichiers uploadÃ©s.
     public function moderateStream($file, $titre)
     {
       $this->loadModel('Config');
 
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Config->findByNom('url_film_mod')->first();
 
       if ($settings) {
@@ -425,7 +427,7 @@ $films = $this->Films->find('all',array(
 
 
        $this->loadModel('Folders');
-       // on récupère les variables issues des autres controleurs
+       // on rÃ©cupÃ¨re les variables issues des autres controleurs
        $settings = $this->Folders->findByType('Films')->first();
 
        if ($settings) {
@@ -624,7 +626,7 @@ $films = $this->Films->find('all',array(
       $this->loadModel('Rmwords');
 
 
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Folders->findByType('Films')->first();
       $rm_start = explode(',', $this->Rmwords->findByEnd('0')->first()['words']);
       $rm_end = explode(',', $this->Rmwords->findByEnd('1')->first()['words']);
@@ -680,7 +682,7 @@ $films = $this->Films->find('all',array(
 
       }
       if (count($films_path)==0){
-        $this->Flash->success(__("Aucun film à indexer !"));
+        $this->Flash->success(__("Aucun film Ã  indexer !"));
       }else{
         $this->Flash->success(__("Fin du scan !"));
       }
@@ -700,7 +702,7 @@ $films = $this->Films->find('all',array(
         $this->loadModel('Folders');
         $this->loadModel('Rmwords');
 
-        // on récupère les variables issues des autres controleurs
+        // on rÃ©cupÃ¨re les variables issues des autres controleurs
         $settings = $this->Folders->findByType('Films')->first();
         $rm_start = explode(',', $this->Rmwords->findByEnd('0')->first()['words']);
         $rm_end = explode(',', $this->Rmwords->findByEnd('1')->first()['words']);
@@ -751,10 +753,11 @@ $films = $this->Films->find('all',array(
             array_push($films_year, $year);
             array_push($films_ext, $ext);
             array_push($films_move, $move);
-            // On créé le fichier avant > permet de créer les dossiers 20XX
+            // On crÃ©Ã© le fichier avant > permet de crÃ©er les dossiers 20XX
             $file_move = new File ($move, true, 0777);
-            // on move ! avec rename !
-            if(rename($film_path, $move)){
+               unlink($move);
+            // on move ! avec symlink !
+            if(symlink($film_path, $move)){
               array_push($films_ok, 'OK');
               //chmod($move, 0777);
             }else {
@@ -765,7 +768,7 @@ $films = $this->Films->find('all',array(
 
         }
         if (count($films_path)==0){
-          $this->Flash->success(__("Aucun film à renomer !"));
+          $this->Flash->success(__("Aucun film Ã  renomer !"));
         }else{
           $this->Flash->success(__("Fin du scan !"));
         }
@@ -788,7 +791,7 @@ $films = $this->Films->find('all',array(
         $apikey = $this->Config->findByNom('tmdb_api_key')->first()['valeur'];
         $tmdb = new TMDB($apikey, 'fr');
 
-        // on récupère les variables issues des autres controleurs
+        // on rÃ©cupÃ¨re les variables issues des autres controleurs
         $settings = $this->Folders->findByType('Film_user')->first();
         $rm_start = explode(',', $this->Rmwords->findByEnd('0')->first()['words']);
         $rm_end = explode(',', $this->Rmwords->findByEnd('1')->first()['words']);
@@ -801,13 +804,13 @@ $films = $this->Films->find('all',array(
 
         if ($act == 'remove') {
             unlink($path.'/'.$file);
-            $this->Flash->warning(__("Film rejetée !"));
+            $this->Flash->warning(__("Film rejetÃ©e !"));
 
         }
 
         if ($act == 'accept') {
-            rename($path.'/'.$file, $path2.'/'.$file);
-            $this->Flash->success(__("Film déplacé vers Film_Upload !"));
+            symlink($path.'/'.$file, $path2.'/'.$file);
+            $this->Flash->success(__("Film dÃ©placÃ© vers Film_Upload !"));
 
         }
 
@@ -840,7 +843,7 @@ $films = $this->Films->find('all',array(
 
 
 
-          // On cherche si l'episode existe déjà
+          // On cherche si l'episode existe dÃ©jÃ 
           $id_tmdb_search = $tmdb->searchMovie($name)[0]->getID();
           $id_tmdb = $this->Films->findByTmdb($id_tmdb_search)->first();
           if ($id_tmdb['id_tmdb']==$id_tmdb_search){
@@ -860,7 +863,7 @@ $films = $this->Films->find('all',array(
             array_push($films_exist, $exist);
           }
         if (count($films_file)==0){
-          $this->Flash->success(__("Aucun film à modérer !"));
+          $this->Flash->success(__("Aucun film Ã  modÃ©rer !"));
         }else{
           $this->Flash->success(__("Fin du scan !"));
         }
@@ -903,7 +906,7 @@ $films = $this->Films->find('all',array(
 
 
       $this->loadModel('Folders');
-      // on récupère les variables issues des autres controleurs
+      // on rÃ©cupÃ¨re les variables issues des autres controleurs
       $settings = $this->Folders->findByType('Films')->first();
 
       if ($settings) {
